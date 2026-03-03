@@ -1,0 +1,25 @@
+# Build artifacts
+build.sh
+
+# Version control
+.git
+.gitignore
+.gitmodules
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Miscellaneous
+*.md
+LICENSE
+COPYING
+COPYING.LIB
+MAINTAINERS
