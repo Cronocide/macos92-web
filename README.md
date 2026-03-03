@@ -62,15 +62,7 @@ The browser UI auto-connects and provides two extensions on top of stock noVNC:
 
 ### Audio Streaming
 
-QEMU's VNC audio extension (Screamer) streams audio from the emulated machine to your browser via the Web Audio API. A floating speaker button appears in the bottom-right corner of the page:
-
-| Icon | State |
-|------|-------|
-| 🔇 | Audio disabled — click to enable |
-| 🔈 | Audio enabled, waiting for stream |
-| 🔊 | Audio playing |
-
-Audio is enabled automatically on first user interaction (click, keypress, or touch) to comply with browser autoplay policies. You can toggle it at any time with the speaker button.
+QEMU's VNC audio extension (Screamer) streams audio from the emulated machine to your browser via the Web Audio API. Audio is enabled automatically on first user interaction (click, keypress, or touch) to comply with browser autoplay policies. 
 
 **Disable audio** by appending `?audio=0` to the URL:
 ```
@@ -102,3 +94,6 @@ The container configures QEMU with user-mode (slirp) NAT networking by default, 
 docker build -t qemu-screamer .
 docker run -it -p 6080:6080 -v /path/to/disk.iso:/data/disk.iso qemu-screamer
 ```
+## Justification
+
+I was working on a qemu port for aarch64 and thought it would be fun to get a thin NoVNC webUI up to demo.
