@@ -1,5 +1,5 @@
 # Build artifacts
-build.sh
+build/
 
 # Version control
 .git
@@ -16,6 +16,9 @@ build.sh
 # Docker
 Dockerfile
 .dockerignore
+
+# ROM source trees (very large; pre-built firmware in pc-bios/ is sufficient)
+roms/
 
 # Miscellaneous
 *.md
