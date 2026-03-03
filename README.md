@@ -4,6 +4,7 @@ A containerised QEMU PowerPC (Mac99) emulator with _"Screamer"_ audio support, a
 
 [![Build Status](https://jenkins.cronocide.net/buildStatus/icon?job=git.cronocide.net%2Fmacos92-web%2Fmaster&subject=Jenkins%20Build)](https://jenkins.cronocide.net/job/git.cronocide.net/job/macos92-web/job/master/)
 
+![Screenshot of MacOS 9.2 booting up](screenshot.png)
 
 ## Quick Start
 
