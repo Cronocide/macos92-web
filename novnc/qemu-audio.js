@@ -150,8 +150,7 @@
     sendEnable(r._sock);
     enabled = true;
     nextT   = 0;
-    updateBtn();
-    toast("Audio enabled");
+    console.log("[QEMU Audio] Audio enabled");
   }
 
   function doDisable() {
@@ -159,8 +158,7 @@
     if (r && r._sock) sendDisable(r._sock);
     enabled   = false;
     streaming = false;
-    updateBtn();
-    toast("Audio disabled");
+    console.log("[QEMU Audio] Audio disabled");
   }
 
   /* ==================================================================
@@ -204,14 +202,12 @@
       case MSG_END:
         sock.rQshift8(); sock.rQshift16();
         streaming = false;
-        updateBtn();
         return true;
 
       case MSG_BEGIN:
         sock.rQshift8(); sock.rQshift16();
         streaming = true;
         nextT     = 0;
-        updateBtn();
         return true;
 
       case MSG_DATA:
@@ -239,66 +235,6 @@
   };
 
   /* ==================================================================
-   * UI — floating speaker button
-   * ================================================================*/
-  function createBtn() {
-    var b = document.createElement("div");
-    b.id          = "qemu-audio-btn";
-    b.textContent = "\uD83D\uDD07";   /* 🔇 */
-    b.title       = "Enable QEMU audio";
-    b.style.cssText =
-      "position:fixed;bottom:12px;right:12px;width:40px;height:40px;" +
-      "background:rgba(0,0,0,.72);color:#fff;border-radius:50%;" +
-      "display:flex;align-items:center;justify-content:center;" +
-      "font-size:20px;cursor:pointer;z-index:99999;" +
-      "box-shadow:0 2px 8px rgba(0,0,0,.3);transition:all .2s;" +
-      "user-select:none;-webkit-user-select:none;";
-
-    b.onmouseenter = function () { b.style.transform = "scale(1.1)"; };
-    b.onmouseleave = function () { b.style.transform = "";           };
-
-    b.onclick = function (e) {
-      e.stopPropagation();
-      gestured = true;
-      enabled ? doDisable() : doEnable();
-    };
-
-    document.body.appendChild(b);
-  }
-
-  function updateBtn() {
-    var b = document.getElementById("qemu-audio-btn");
-    if (!b) return;
-    if (enabled && streaming) {
-      b.textContent = "\uD83D\uDD0A";             /* 🔊 */
-      b.title       = "Audio playing \u2014 click to mute";
-    } else if (enabled) {
-      b.textContent = "\uD83D\uDD08";             /* 🔈 */
-      b.title       = "Waiting for audio stream\u2026";
-    } else {
-      b.textContent = "\uD83D\uDD07";             /* 🔇 */
-      b.title       = "Enable QEMU audio";
-    }
-  }
-
-  /* ---- toast ---- */
-  function toast(m) {
-    var e = document.getElementById("qaudio-toast");
-    if (e) e.remove();
-    e = document.createElement("div");
-    e.id          = "qaudio-toast";
-    e.textContent = m;
-    e.style.cssText =
-      "position:fixed;bottom:64px;right:12px;" +
-      "background:rgba(0,0,0,.78);color:#fff;padding:6px 16px;" +
-      "border-radius:6px;font:13px/1.4 sans-serif;z-index:99999;" +
-      "pointer-events:none;transition:opacity .5s;opacity:1;";
-    document.body.appendChild(e);
-    setTimeout(function () { e.style.opacity = "0"; }, 2000);
-    setTimeout(function () { e.remove();             }, 2600);
-  }
-
-  /* ==================================================================
    * User-gesture tracking (required by browser autoplay policy)
    * ================================================================*/
   function trackGesture() {
@@ -318,10 +254,9 @@
    * Boot
    * ================================================================*/
   function boot() {
-    createBtn();
     trackGesture();
     console.log(
-      "[QEMU Audio] Extension loaded \u2014 click \uD83D\uDD07 or " +
+      "[QEMU Audio] Extension loaded \u2014 " +
       "interact with the page to enable audio."
     );
   }
