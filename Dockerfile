@@ -116,6 +116,7 @@ RUN pip3 install --break-system-packages --no-cache-dir websockify
 COPY novnc/index.html /tmp/novnc-index.html
 COPY novnc/pointer-lock.js /tmp/novnc-pointer-lock.js
 COPY novnc/qemu-audio.js /tmp/novnc-qemu-audio.js
+COPY novnc/novnc.ico /tmp/novnc-favicon.ico
 
 # Install noVNC (auto-connect + pointer lock + QEMU audio enabled by default)
 RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
@@ -123,6 +124,7 @@ RUN git clone --depth 1 https://github.com/novnc/noVNC.git /opt/noVNC && \
     cp /tmp/novnc-index.html /opt/noVNC/index.html && \
     cp /tmp/novnc-pointer-lock.js /opt/noVNC/app/pointer-lock.js && \
     cp /tmp/novnc-qemu-audio.js /opt/noVNC/app/qemu-audio.js && \
+    cp /tmp/novnc-favicon.ico /opt/noVNC/app/images/icons/novnc.ico && \
     sed -i '/<\/body>/i <script src="app/qemu-audio.js"><\/script>' /opt/noVNC/vnc.html && \
     sed -i '/<\/body>/i <script src="app/pointer-lock.js"><\/script>' /opt/noVNC/vnc.html
 
@@ -161,6 +163,12 @@ set -e
 : "${QEMU_CPU:=G4}"
 : "${QEMU_MACHINE:=mac99,via=pmu-adb}"
 : "${DISK_IMAGE:=/data/disk.iso}"
+: "${NOVNC_TITLE:=noVNC}"
+
+# Patch noVNC page title at runtime
+sed -i "s|<title>noVNC</title>|<title>${NOVNC_TITLE}</title>|" /opt/noVNC/vnc.html
+# Inject a script that intercepts dynamic title updates from noVNC's JS
+sed -i "/<\/head>/i <script>(function(){var t=\"${NOVNC_TITLE}\";var d=Object.getOwnPropertyDescriptor(Document.prototype,\"title\")||Object.getOwnPropertyDescriptor(HTMLDocument.prototype,\"title\");if(d){Object.defineProperty(document,\"title\",{get:function(){return d.get.call(document)},set:function(v){d.set.call(document,v.replace(/QEMU - noVNC/g,t))},configurable:true})}})();<\/script>" /opt/noVNC/vnc.html
 
 echo "=============================================="
 echo "  qemu-ppc-screamer + noVNC"
@@ -170,6 +178,7 @@ echo "  VNC port   : ${VNC_PORT}"
 echo "  Disk image : ${DISK_IMAGE}"
 echo "  RAM        : ${QEMU_RAM}M"
 echo "  Resolution : ${QEMU_RES}"
+echo "  Page title : ${NOVNC_TITLE}"
 echo "=============================================="
 
 # Start noVNC (websockify) in the background

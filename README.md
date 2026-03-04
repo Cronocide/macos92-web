@@ -30,6 +30,7 @@ All environment variables are optional and have the following defaults:
 | `QEMU_CPU` | `G4` | Emulated CPU model (e.g. `G4`, `G3`, `750`, `7400`). |
 | `QEMU_MACHINE` | `mac99,via=pmu-adb` | QEMU machine type and options. `mac99` is the New World Mac platform; `via=pmu-adb` enables ADB input via the PMU. |
 | `DISK_IMAGE` | `/data/disk.iso` | Path to the disk image file inside the container. |
+| `NOVNC_TITLE` | `noVNC` | Browser window/tab title for the noVNC web interface. |
 
 ### Example with custom settings
 

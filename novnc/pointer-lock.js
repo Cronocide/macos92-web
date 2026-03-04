@@ -154,21 +154,25 @@
       }
     });
 
-    /* ---- Intercept mouse events while locked ---- */
+    /* ---- Intercept ALL mouse events (locked or not) ---- */
 
     /*
-     * We listen in the CAPTURING phase on the canvas and call
-     * stopImmediatePropagation() so noVNC's own handlers never
-     * see these events.  Instead we translate movementX/Y into
-     * accumulated VNC coordinates and send a raw pointer event
-     * over the WebSocket.
+     * We ALWAYS block mouse events from reaching noVNC so that its
+     * built-in absolute-coordinate mouse handling never fires.  This
+     * makes our pointer-lock implementation the exclusive mouse input
+     * path.  When not locked we still suppress the events — the user
+     * simply needs to click to engage pointer lock (handled by the
+     * document-level mousedown listener, which fires earlier in the
+     * capturing phase because document is an ancestor of the canvas).
      */
     ["mousemove", "mousedown", "mouseup"].forEach(function (type) {
       cvs.addEventListener(type, function (ev) {
-        if (!locked) return;
-
+        /* Always block noVNC from seeing mouse events */
         ev.stopImmediatePropagation();
         ev.preventDefault();
+
+        /* When not locked, just swallow the event — no VNC traffic */
+        if (!locked) return;
 
         /* Scale browser screen-pixels → VNC framebuffer-pixels */
         var r    = cvs.getBoundingClientRect();
@@ -196,9 +200,9 @@
 
     /* ---- Scroll wheel ---- */
     cvs.addEventListener("wheel", function (ev) {
-      if (!locked) return;
       ev.stopImmediatePropagation();
       ev.preventDefault();
+      if (!locked) return;
 
       /* VNC: bit 3 = scroll-up (0x08), bit 4 = scroll-down (0x10) */
       var scrollBit = 0;
@@ -210,6 +214,12 @@
       sendVncPointer(vncX, vncY, btnMask | scrollBit);
       /* … then immediately release it */
       sendVncPointer(vncX, vncY, btnMask);
+    }, true);
+
+    /* ---- Block context menu so right-click goes to QEMU ---- */
+    cvs.addEventListener("contextmenu", function (ev) {
+      ev.stopImmediatePropagation();
+      ev.preventDefault();
     }, true);
   }
 
