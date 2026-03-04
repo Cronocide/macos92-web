@@ -74,7 +74,15 @@
    * ================================================================*/
   function playPCM(raw) {
     var c = ac();
-    if (!c || c.state !== "running") return;
+    if (!c) return;
+    if (c.state === "suspended") {
+      /* Context was created outside a user gesture — try to resume.
+         Drop this frame; once the context transitions to "running"
+         subsequent frames will play normally. */
+      c.resume();
+      return;
+    }
+    if (c.state !== "running") return;
 
     var nSamples = (raw.length / (2 * CHANS)) | 0;
     if (nSamples === 0) return;
@@ -290,6 +298,9 @@
       e.stopPropagation();
       e.preventDefault();
       gestured = true;
+      /* Ensure AudioContext is created/resumed inside this gesture */
+      var c = ac();
+      if (c && c.state === "suspended") c.resume();
       enabled ? doDisable() : doEnable();
     });
 
@@ -349,6 +360,9 @@
     h.addEventListener("click", function (e) {
       e.stopPropagation();
       gestured = true;
+      /* Ensure AudioContext is created/resumed inside this gesture */
+      var c = ac();
+      if (c && c.state === "suspended") c.resume();
       if (!enabled) doEnable();
     });
     document.body.appendChild(h);
@@ -363,14 +377,29 @@
 
   /* ==================================================================
    * User-gesture tracking (required by browser autoplay policy)
+   *
+   * The listener is kept alive until doEnable() actually succeeds
+   * (i.e. the RFB connection is ready).  This prevents the gesture
+   * from being "wasted" when the WebSocket is still connecting —
+   * which is common behind TLS load balancers / reverse proxies.
    * ================================================================*/
   function trackGesture() {
     function on() {
       gestured = true;
-      ["click", "keydown", "touchstart"].forEach(function (t) {
-        document.removeEventListener(t, on, true);
-      });
-      if (!enabled) doEnable();
+      /* Always create / resume the AudioContext while inside a real
+         user gesture so the browser's autoplay policy is satisfied. */
+      var c = ac();
+      if (c && c.state === "suspended") c.resume();
+
+      var r = rfb || window.__qemuRFB;
+      if (r && r._sock) {
+        /* RFB is ready — enable audio and stop listening */
+        ["click", "keydown", "touchstart"].forEach(function (t) {
+          document.removeEventListener(t, on, true);
+        });
+        if (!enabled) doEnable();
+      }
+      /* If RFB isn't connected yet, keep listening for the next gesture */
     }
     ["click", "keydown", "touchstart"].forEach(function (t) {
       document.addEventListener(t, on, true);
